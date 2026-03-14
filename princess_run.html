@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Princess Run - Adventure Awaits</title>
+  <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      font-family: 'Cinzel', serif;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #gameContainer {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #titleScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      transition: opacity 1s ease-in-out;
+    }
+
+    #titleScreen.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .title-header {
+      font-family: 'MedievalSharp', cursive;
+      font-size: 4rem;
+      color: #ffd700;
+      text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+      margin-bottom: 2rem;
+      animation: titleGlow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes titleGlow {
+      from { text-shadow: 3px 3px 6px rgba(0,0,0,0.8), 0 0 20px rgba(255,215,0,0.5); }
+      to { text-shadow: 3px 3px 6px rgba(0,0,0,0.8), 0 0 30px rgba(255,215,0,0.8); }
+    }
+
+    .subtitle {
+      font-size: 1.5rem;
+      color: #fff;
+      margin-bottom: 3rem;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    }
+
+    .start-btn {
+      background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      font-size: 1.5rem;
+      font-family: 'Cinzel', serif;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    .start-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      background: linear-gradient(45deg, #ff5252, #d63031);
+    }
+
+    #introScene {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, #87CEEB 0%, #98FB98 50%, #8FBC8F 100%);
+      display: none;
+      z-index: 900;
+    }
+
+    #introCanvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    .intro-text {
+      position: absolute;
+      color: #2c3e50;
+      font-size: 2rem;
+      font-weight: bold;
+      text-align: center;
+      width: 100%;
+      opacity: 0;
+      transition: opacity 2s ease-in-out;
+    }
+
+    .intro-text.fade-in {
+      opacity: 1;
+    }
+
+    #gameCanvas {
+      background: linear-gradient(to bottom, #87CEEB 0%, #98FB98 50%, #8FBC8F 100%);
+      border: 3px solid #8B4513;
+      border-radius: 10px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.3);
+    }
+
+    #gameUI {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 100;
+    }
+
+    .game-text {
+      font-family: 'MedievalSharp', cursive;
+      color: #8B4513;
+      text-shadow: 2px 2px 4px rgba(255,255,255,0.8);
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+    }
+
+    .lives {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+
+    .heart {
+      color: #ff4757;
+      font-size: 1.5rem;
+      animation: heartbeat 1s ease-in-out infinite;
+    }
+
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .controls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 15px;
+      z-index: 100;
+    }
+
+    .game-btn {
+      background: linear-gradient(45deg, #74b9ff, #0984e3);
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      font-size: 1rem;
+      font-family: 'Cinzel', serif;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    }
+
+    .game-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    .game-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    #gameOverScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 800;
+    }
+
+    .game-over-content {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 3rem;
+      border-radius: 20px;
+      text-align: center;
+      color: white;
+      box-shadow: 0 0 50px rgba(0,0,0,0.5);
+    }
+
+    .game-over-title {
+      font-family: 'MedievalSharp', cursive;
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: #ffd700;
+    }
+
+    .final-score {
+      font-size: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .restart-btn {
+      background: linear-gradient(45deg, #00b894, #00a085);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      font-family: 'Cinzel', serif;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .restart-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    .mobile-instructions {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #8B4513;
+      font-size: 1rem;
+      text-align: center;
+      opacity: 0.8;
+    }
+
+    @media (max-width: 768px) {
+      .title-header { font-size: 2.5rem; }
+      .subtitle { font-size: 1.2rem; }
+      .start-btn { padding: 12px 30px; font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div id="gameContainer">
+    <!-- Title Screen -->
+    <div id="titleScreen">
+      <h1 class="title-header">👑 Princess Run</h1>
+      <p class="subtitle">Adventure Awaits in the Enchanted Forest</p>
+      <button class="start-btn" onclick="startIntro()">Begin Adventure</button>
+    </div>
+
+    <!-- Intro Scene -->
+    <div id="introScene">
+      <canvas id="introCanvas"></canvas>
+      <div class="intro-text" id="introText1">Once upon a time, in a distant castle...</div>
+      <div class="intro-text" id="introText2">A princess yearned for freedom...</div>
+      <div class="intro-text" id="introText3">She threw off her crown and ran into the forest!</div>
+    </div>
+
+    <!-- Game Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Game UI -->
+    <div id="gameUI">
+      <div class="game-text" id="scoreText">Score: 0</div>
+      <div class="game-text" id="highScoreText">High Score: 0</div>
+      <div class="lives" id="livesDisplay">
+        <span class="heart">❤️</span>
+        <span class="heart">❤️</span>
+        <span class="heart">❤️</span>
+      </div>
+    </div>
+
+    <!-- Game Controls -->
+    <div class="controls">
+      <button class="game-btn" id="pauseBtn" onclick="togglePause()">Pause</button>
+      <button class="game-btn" id="endBtn" onclick="endGame()">End</button>
+    </div>
+
+    <!-- Mobile Instructions -->
+    <div class="mobile-instructions">Tap to jump • Swipe to pause</div>
+
+    <!-- Game Over Screen -->
+    <div id="gameOverScreen">
+      <div class="game-over-content">
+        <h2 class="game-over-title">Game Over!</h2>
+        <div class="final-score" id="finalScore">Final Score: 0</div>
+        <button class="restart-btn" onclick="restartGame()">Play Again</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Game state management
+    const GameState = {
+      TITLE: 'title',
+      INTRO: 'intro',
+      PLAYING: 'playing',
+      PAUSED: 'paused',
+      GAME_OVER: 'game_over'
+    };
+
+    let currentState = GameState.TITLE;
+    let gameRunning = false;
+    let gamePaused = false;
+    let score = 0;
+    let highScore = localStorage.getItem('princessRunHighScore') || 0;
+    let lives = 3;
+    let frame = 0;
+    let introFrame = 0;
+
+    // Canvas setup
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const introCanvas = document.getElementById('introCanvas');
+    const introCtx = introCanvas.getContext('2d');
+
+    // Set canvas sizes
+    function resizeCanvas() {
+      const maxWidth = Math.min(800, window.innerWidth - 40);
+      const maxHeight = Math.min(600, window.innerHeight - 200);
+      
+      canvas.width = maxWidth;
+      canvas.height = maxHeight;
+      
+      introCanvas.width = window.innerWidth;
+      introCanvas.height = window.innerHeight;
+    }
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Asset management and sprite system
+    const sprites = {
+      princess: {
+        width: 40,
+        height: 60,
+        x: 50,
+        y: 0,
+        dy: 0,
+        jumpPower: -15,
+        isJumping: false,
+        animationFrame: 0,
+        currentState: 'idle', // idle, running, jumping
+        frameCount: 0
+      },
+      crown: {
+        x: 0,
+        y: 0,
+        width: 30,
+        height: 30,
+        dy: 0,
+        visible: false
+      }
+    };
+
+    // Image assets - ready for you to drop in real sprites
+    const images = {
+      princess: {
+        idle: null,
+        running: null,
+        jumping: null
+      },
+      crown: null,
+      castle: null,
+      background: {
+        sky: null,
+        clouds: null,
+        trees: null,
+        ground: null
+      }
+    };
+
+    // Sprite dimensions and animation data
+    const spriteData = {
+      princess: {
+        frameWidth: 40,
+        frameHeight: 60,
+        states: {
+          idle: { frames: 1, frameTime: 100 },
+          running: { frames: 4, frameTime: 150 },
+          jumping: { frames: 2, frameTime: 200 }
+        }
+      },
+      crown: {
+        width: 30,
+        height: 30
+      }
+    };
+
+    // Load placeholder sprites (replace with real images later)
+    function createPlaceholderSprites() {
+      // Create canvas-based sprites for princess
+      const princessCanvas = document.createElement('canvas');
+      princessCanvas.width = spriteData.princess.frameWidth * 4; // 4 running frames
+      princessCanvas.height = spriteData.princess.frameHeight * 3; // 3 states
+      const pCtx = princessCanvas.getContext('2d');
+
+      // Idle frame (frame 0)
+      drawPrincessFrame(pCtx, 0, 0, 'idle');
+      // Running frames (frames 1-4)
+      for (let i = 0; i < 4; i++) {
+        drawPrincessFrame(pCtx, i * spriteData.princess.frameWidth, spriteData.princess.frameHeight, 'running', i);
+      }
+      // Jumping frames (frames 5-6)
+      for (let i = 0; i < 2; i++) {
+        drawPrincessFrame(pCtx, i * spriteData.princess.frameWidth, spriteData.princess.frameHeight * 2, 'jumping', i);
+      }
+
+      // Create crown sprite
+      const crownCanvas = document.createElement('canvas');
+      crownCanvas.width = spriteData.crown.width;
+      crownCanvas.height = spriteData.crown.height;
+      const cCtx = crownCanvas.getContext('2d');
+      drawCrownSprite(cCtx);
+
+      // Create castle sprite
+      const castleCanvas = document.createElement('canvas');
+      castleCanvas.width = 300;
+      castleCanvas.height = 400;
+      const castleCtx = castleCanvas.getContext('2d');
+      drawCastleSprite(castleCtx);
+
+      // Store the canvas sprites
+      images.princess.idle = princessCanvas;
+      images.princess.running = princessCanvas;
+      images.princess.jumping = princessCanvas;
+      images.crown = crownCanvas;
+      images.castle = castleCanvas;
+    }
+
+    // Draw detailed princess frame
+    function drawPrincessFrame(ctx, x, y, state, frameIndex = 0) {
+      ctx.save();
+      
+      // Body
+      ctx.fillStyle = '#FFB6C1';
+      ctx.fillRect(x + 5, y + 25, 30, 35);
+      
+      // Dress with different colors for animation
+      const dressColors = ['#FF69B4', '#FF1493', '#DC143C', '#C71585'];
+      ctx.fillStyle = dressColors[frameIndex % dressColors.length] || '#FF69B4';
+      ctx.fillRect(x + 8, y + 30, 24, 30);
+      
+      // Dress details
+      ctx.fillStyle = '#FFB6C1';
+      ctx.fillRect(x + 10, y + 35, 20, 5);
+      ctx.fillRect(x + 10, y + 45, 20, 5);
+      
+      // Head
+      ctx.fillStyle = '#FFE4E1';
+      ctx.beginPath();
+      ctx.arc(x + 20, y + 15, 12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Hair with movement for running
+      ctx.fillStyle = '#8B4513';
+      if (state === 'running') {
+        const hairOffset = Math.sin(frameIndex * 0.5) * 2;
+        ctx.beginPath();
+        ctx.arc(x + 20 + hairOffset, y + 8, 15, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.beginPath();
+        ctx.arc(x + 20, y + 8, 15, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Eyes
+      ctx.fillStyle = '#000';
+      ctx.fillRect(x + 16, y + 12, 3, 3);
+      ctx.fillRect(x + 22, y + 12, 3, 3);
+      
+      // Crown (only on idle)
+      if (state === 'idle') {
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(x + 15, y - 5, 10, 8);
+        // Crown jewels
+        ctx.fillStyle = '#FF0000';
+        ctx.fillRect(x + 16, y - 3, 2, 2);
+        ctx.fillStyle = '#00FF00';
+        ctx.fillRect(x + 20, y - 3, 2, 2);
+        ctx.fillStyle = '#0000FF';
+        ctx.fillRect(x + 24, y - 3, 2, 2);
+      }
+      
+      // Arms with movement for running
+      if (state === 'running') {
+        const armOffset = Math.sin(frameIndex * 0.5) * 3;
+        ctx.fillStyle = '#FFB6C1';
+        ctx.fillRect(x + 2, y + 30 + armOffset, 8, 15);
+        ctx.fillRect(x + 30, y + 30 - armOffset, 8, 15);
+      } else {
+        ctx.fillStyle = '#FFB6C1';
+        ctx.fillRect(x + 2, y + 30, 8, 15);
+        ctx.fillRect(x + 30, y + 30, 8, 15);
+      }
+      
+      // Legs with movement for running
+      if (state === 'running') {
+        const legOffset = Math.sin(frameIndex * 0.5) * 4;
+        ctx.fillStyle = '#FFB6C1';
+        ctx.fillRect(x + 12, y + 55 + legOffset, 6, 15);
+        ctx.fillRect(x + 22, y + 55 - legOffset, 6, 15);
+      } else {
+        ctx.fillStyle = '#FFB6C1';
+        ctx.fillRect(x + 12, y + 55, 6, 15);
+        ctx.fillRect(x + 22, y + 55, 6, 15);
+      }
+      
+      ctx.restore();
+    }
+
+    // Draw detailed crown sprite
+    function drawCrownSprite(ctx) {
+      ctx.save();
+      
+      // Main crown body
+      ctx.fillStyle = '#FFD700';
+      ctx.fillRect(5, 5, 20, 20);
+      
+      // Crown points
+      ctx.fillStyle = '#FFD700';
+      for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.moveTo(5 + i * 4, 5);
+        ctx.lineTo(7 + i * 4, 0);
+        ctx.lineTo(9 + i * 4, 5);
+        ctx.fill();
+      }
+      
+      // Crown jewels
+      ctx.fillStyle = '#FF0000';
+      ctx.fillRect(8, 8, 3, 3);
+      ctx.fillStyle = '#00FF00';
+      ctx.fillRect(13, 8, 3, 3);
+      ctx.fillStyle = '#0000FF';
+      ctx.fillRect(18, 8, 3, 3);
+      
+      // Crown shine
+      ctx.fillStyle = '#FFF';
+      ctx.globalAlpha = 0.3;
+      ctx.fillRect(6, 6, 2, 2);
+      ctx.fillRect(22, 6, 2, 2);
+      
+      ctx.restore();
+    }
+
+    // Draw detailed castle sprite
+    function drawCastleSprite(ctx) {
+      ctx.save();
+      
+      // Castle base
+      ctx.fillStyle = '#696969';
+      ctx.fillRect(100, 200, 200, 200);
+      
+      // Castle walls
+      ctx.fillStyle = '#808080';
+      ctx.fillRect(80, 150, 240, 50);
+      
+      // Main tower
+      ctx.fillStyle = '#A9A9A9';
+      ctx.fillRect(150, 100, 100, 100);
+      
+      // Side towers
+      ctx.fillStyle = '#A9A9A9';
+      ctx.fillRect(100, 120, 60, 80);
+      ctx.fillRect(240, 120, 60, 80);
+      
+      // Tower tops
+      ctx.fillStyle = '#C0C0C0';
+      ctx.fillRect(140, 80, 120, 30);
+      ctx.fillRect(90, 100, 80, 20);
+      ctx.fillRect(230, 100, 80, 20);
+      
+      // Windows
+      ctx.fillStyle = '#87CEEB';
+      ctx.fillRect(170, 130, 20, 30);
+      ctx.fillRect(210, 130, 20, 30);
+      ctx.fillRect(120, 150, 15, 20);
+      ctx.fillRect(250, 150, 15, 20);
+      
+      // Door
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(180, 350, 40, 50);
+      
+      // Flag
+      ctx.fillStyle = '#FF0000';
+      ctx.fillRect(200, 70, 30, 20);
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(200, 70, 3, 20);
+      
+      // Castle details
+      ctx.fillStyle = '#2F4F4F';
+      for (let i = 0; i < 8; i++) {
+        ctx.fillRect(100 + i * 25, 200, 2, 200);
+      }
+      
+      ctx.restore();
+    }
+
+    // Parallax background layers
+    const backgrounds = {
+      sky: { x: 0, speed: 0.1 },
+      clouds: { x: 0, speed: 0.3 },
+      trees: { x: 0, speed: 0.6 },
+      ground: { x: 0, speed: 1 }
+    };
+
+    // Obstacles array
+    let obstacles = [];
+    let particles = [];
+
+    // Sound effects (placeholder - would use Web Audio API in production)
+    const sounds = {
+      jump: () => console.log('Jump sound'),
+      crown: () => console.log('Crown sound'),
+      collision: () => console.log('Collision sound'),
+      gameOver: () => console.log('Game over sound')
+    };
+
+    // Particle system
+    class Particle {
+      constructor(x, y, vx, vy, life, color) {
+        this.x = x;
+        this.y = y;
+        this.vx = vx;
+        this.vy = vy;
+        this.life = life;
+        this.maxLife = life;
+        this.color = color;
+        this.size = Math.random() * 3 + 1;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += 0.1; // gravity
+        this.life--;
+      }
+
+      draw(ctx) {
+        const alpha = this.life / this.maxLife;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // Princess class with improved animation
+    class Princess {
+      constructor() {
+        Object.assign(this, sprites.princess);
+        this.y = canvas.height - this.height;
+        this.lastState = 'idle';
+        this.animationTimer = 0;
+      }
+
+      draw() {
+        ctx.save();
+        
+        // Determine current animation state
+        if (this.isJumping) {
+          this.currentState = 'jumping';
+        } else if (this.y >= canvas.height - this.height - 1) {
+          this.currentState = 'running';
+        } else {
+          this.currentState = 'idle';
+        }
+        
+        // Update animation frame
+        if (this.currentState !== this.lastState) {
+          this.frameCount = 0;
+          this.animationTimer = 0;
+          this.lastState = this.currentState;
+        }
+        
+        // Get sprite data for current state
+        const stateData = spriteData.princess.states[this.currentState];
+        const frameIndex = Math.floor(this.frameCount / stateData.frameTime) % stateData.frames;
+        
+        // Draw the appropriate sprite frame
+        if (images.princess[this.currentState]) {
+          const spriteX = frameIndex * spriteData.princess.frameWidth;
+          const spriteY = this.currentState === 'idle' ? 0 : 
+                         this.currentState === 'running' ? spriteData.princess.frameHeight : 
+                         spriteData.princess.frameHeight * 2;
+          
+          ctx.drawImage(
+            images.princess[this.currentState],
+            spriteX, spriteY, spriteData.princess.frameWidth, spriteData.princess.frameHeight,
+            this.x, this.y, this.width, this.height
+          );
+        }
+        
+        ctx.restore();
+      }
+
+      jump() {
+        if (!this.isJumping) {
+          this.dy = this.jumpPower;
+          this.isJumping = true;
+          sounds.jump();
+          
+          // Add jump particles
+          for (let i = 0; i < 5; i++) {
+            particles.push(new Particle(
+              this.x + this.width/2,
+              this.y + this.height,
+              (Math.random() - 0.5) * 4,
+              -Math.random() * 3,
+              20,
+              '#8B4513'
+            ));
+          }
+        }
+      }
+
+      update() {
+        this.y += this.dy;
+        
+        if (this.y + this.height < canvas.height) {
+          this.dy += 0.8; // gravity
+        } else {
+          this.y = canvas.height - this.height;
+          this.dy = 0;
+          this.isJumping = false;
+          
+          // Landing particles
+          if (this.dy > 5) {
+            for (let i = 0; i < 8; i++) {
+              particles.push(new Particle(
+                this.x + this.width/2,
+                this.y + this.height,
+                (Math.random() - 0.5) * 6,
+                Math.random() * 2,
+                30,
+                '#D2B48C'
+              ));
+            }
+          }
+        }
+        
+        this.draw();
+      }
+    }
+
+    // Obstacle class with variety
+    class Obstacle {
+      constructor() {
+        this.type = Math.random() < 0.3 ? 'wolf' : 'log';
+        this.width = this.type === 'wolf' ? 40 : 30;
+        this.height = this.type === 'wolf' ? 35 : 50;
+        this.x = canvas.width;
+        this.y = canvas.height - this.height;
+        this.speed = 4 + Math.random() * 2;
+      }
+
+      draw() {
+        ctx.save();
+        
+        if (this.type === 'wolf') {
+          // Draw wolf
+          ctx.fillStyle = '#8B4513';
+          ctx.fillRect(this.x, this.y, this.width, this.height);
+          
+          // Wolf head
+          ctx.fillStyle = '#654321';
+          ctx.fillRect(this.x + this.width - 15, this.y - 10, 15, 20);
+          
+          // Eyes
+          ctx.fillStyle = '#FF0000';
+          ctx.fillRect(this.x + this.width - 8, this.y - 5, 3, 3);
+          ctx.fillRect(this.x + this.width - 12, this.y - 5, 3, 3);
+        } else {
+          // Draw log
+          ctx.fillStyle = '#8B4513';
+          ctx.fillRect(this.x, this.y, this.width, this.height);
+          
+          // Log texture
+          ctx.fillStyle = '#654321';
+          ctx.fillRect(this.x + 5, this.y + 5, this.width - 10, 5);
+          ctx.fillRect(this.x + 5, this.y + 20, this.width - 10, 5);
+          ctx.fillRect(this.x + 5, this.y + 35, this.width - 10, 5);
+        }
+        
+        ctx.restore();
+      }
+
+      update() {
+        this.x -= this.speed;
+        this.draw();
+      }
+    }
+
+    // Crown animation during intro
+    function animateCrown() {
+      if (sprites.crown.visible) {
+        sprites.crown.y += sprites.crown.dy;
+        sprites.crown.dy += 0.5;
+        
+        // Draw crown sprite with rotation effect
+        if (images.crown) {
+          ctx.save();
+          ctx.translate(sprites.crown.x + sprites.crown.width/2, sprites.crown.y + sprites.crown.height/2);
+          ctx.rotate(sprites.crown.dy * 0.1); // Rotate based on fall speed
+          ctx.drawImage(
+            images.crown,
+            -sprites.crown.width/2, -sprites.crown.height/2,
+            sprites.crown.width, sprites.crown.height
+          );
+          ctx.restore();
+        }
+      }
+    }
+
+    // Parallax background drawing
+    function drawBackground() {
+      // Sky gradient
+      const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      skyGradient.addColorStop(0, '#87CEEB');
+      skyGradient.addColorStop(1, '#98FB98');
+      ctx.fillStyle = skyGradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Clouds
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      for (let i = 0; i < 5; i++) {
+        const x = (backgrounds.clouds.x + i * 200) % (canvas.width + 200);
+        ctx.beginPath();
+        ctx.arc(x, 80 + i * 20, 30 + i * 10, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Trees
+      ctx.fillStyle = '#228B22';
+      for (let i = 0; i < 8; i++) {
+        const x = (backgrounds.trees.x + i * 150) % (canvas.width + 150);
+        const height = 80 + Math.sin(i) * 20;
+        
+        // Tree trunk
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(x - 10, canvas.height - height, 20, height);
+        
+        // Tree top
+        ctx.fillStyle = '#228B22';
+        ctx.beginPath();
+        ctx.arc(x, canvas.height - height, 25, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Ground
+      ctx.fillStyle = '#8FBC8F';
+      ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+      
+      // Grass detail
+      ctx.fillStyle = '#228B22';
+      for (let i = 0; i < canvas.width; i += 20) {
+        ctx.fillRect(i, canvas.height - 20, 2, 20);
+      }
+    }
+
+    // Intro scene animation
+    function animateIntro() {
+      introCtx.clearRect(0, 0, introCanvas.width, introCanvas.height);
+      
+      // Draw castle background
+      const castleGradient = introCtx.createLinearGradient(0, 0, 0, introCanvas.height);
+      castleGradient.addColorStop(0, '#87CEEB');
+      castleGradient.addColorStop(0.7, '#98FB98');
+      castleGradient.addColorStop(1, '#8FBC8F');
+      introCtx.fillStyle = castleGradient;
+      introCtx.fillRect(0, 0, introCanvas.width, introCanvas.height);
+      
+      // Draw castle sprite
+      if (images.castle) {
+        const castleScale = 0.8;
+        const castleWidth = 300 * castleScale;
+        const castleHeight = 400 * castleScale;
+        const castleX = introCanvas.width * 0.6;
+        const castleY = introCanvas.height * 0.2;
+        
+        introCtx.drawImage(
+          images.castle,
+          castleX, castleY, castleWidth, castleHeight
+        );
+      }
+      
+      // Princess position based on frame
+      if (introFrame < 60) {
+        // Princess on castle (idle)
+        if (images.princess.idle) {
+          introCtx.drawImage(
+            images.princess.idle,
+            0, 0, spriteData.princess.frameWidth, spriteData.princess.frameHeight,
+            introCanvas.width * 0.7, introCanvas.height * 0.4, 40, 60
+          );
+        }
+      } else if (introFrame < 120) {
+        // Princess throwing crown (idle)
+        if (images.princess.idle) {
+          introCtx.drawImage(
+            images.princess.idle,
+            0, 0, spriteData.princess.frameWidth, spriteData.princess.frameHeight,
+            introCanvas.width * 0.7, introCanvas.height * 0.4, 40, 60
+          );
+        }
+        
+        sprites.crown.visible = true;
+        sprites.crown.x = introCanvas.width * 0.7 + 20;
+        sprites.crown.y = introCanvas.height * 0.4 - 20;
+        sprites.crown.dy = -5;
+      } else if (introFrame < 180) {
+        // Princess running
+        if (images.princess.running) {
+          const runFrame = Math.floor((introFrame - 120) / 15) % 4;
+          introCtx.drawImage(
+            images.princess.running,
+            runFrame * spriteData.princess.frameWidth, spriteData.princess.frameHeight,
+            spriteData.princess.frameWidth, spriteData.princess.frameHeight,
+            introCanvas.width * 0.3 + (introFrame - 120) * 2, introCanvas.height * 0.6, 40, 60
+          );
+        }
+        
+        animateCrown();
+      } else {
+        // Princess in forest (idle)
+        if (images.princess.idle) {
+          introCtx.drawImage(
+            images.princess.idle,
+            0, 0, spriteData.princess.frameWidth, spriteData.princess.frameHeight,
+            introCanvas.width * 0.1, introCanvas.height * 0.6, 40, 60
+          );
+        }
+        
+        animateCrown();
+      }
+      
+      introFrame++;
+      
+      if (introFrame < 300) {
+        requestAnimationFrame(animateIntro);
+      } else {
+        startGame();
+      }
+    }
+
+    // Game functions
+    function startIntro() {
+      document.getElementById('titleScreen').classList.add('fade-out');
+      setTimeout(() => {
+        document.getElementById('titleScreen').style.display = 'none';
+        document.getElementById('introScene').style.display = 'block';
+        currentState = GameState.INTRO;
+        
+        // Show intro text with timing
+        setTimeout(() => {
+          document.getElementById('introText1').classList.add('fade-in');
+        }, 500);
+        
+        setTimeout(() => {
+          document.getElementById('introText2').classList.add('fade-in');
+        }, 2000);
+        
+        setTimeout(() => {
+          document.getElementById('introText3').classList.add('fade-in');
+        }, 4000);
+        
+        animateIntro();
+      }, 1000);
+    }
+
+    function startGame() {
+      document.getElementById('introScene').style.display = 'none';
+      currentState = GameState.PLAYING;
+      gameRunning = true;
+      gamePaused = false;
+      score = 0;
+      lives = 3;
+      frame = 0;
+      obstacles = [];
+      particles = [];
+      
+      // Create princess
+      princess = new Princess();
+      
+      updateUI();
+      animate();
+    }
+
+    function animate() {
+      if (!gameRunning || gamePaused) return;
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Update background positions
+      backgrounds.clouds.x -= backgrounds.clouds.speed;
+      backgrounds.trees.x -= backgrounds.trees.speed;
+      
+      // Draw background
+      drawBackground();
+      
+      // Update and draw princess
+      princess.update();
+      
+      // Spawn obstacles
+      if (frame % 80 === 0) {
+        obstacles.push(new Obstacle());
+      }
+      
+      // Update obstacles
+      for (let i = 0; i < obstacles.length; i++) {
+        obstacles[i].update();
+        
+        // Collision check
+        if (detectCollision(princess, obstacles[i])) {
+          handleCollision();
+          return;
+        }
+      }
+      
+      // Clean up obstacles
+      obstacles = obstacles.filter(obs => obs.x + obs.width > 0);
+      
+      // Update particles
+      particles = particles.filter(particle => {
+        particle.update();
+        particle.draw(ctx);
+        return particle.life > 0;
+      });
+      
+      // Update animation frame counter for princess
+      if (princess) {
+        princess.frameCount++;
+      }
+      
+      score++;
+      frame++;
+      requestAnimationFrame(animate);
+    }
+
+    function detectCollision(princess, obstacle) {
+      return (
+        princess.x < obstacle.x + obstacle.width &&
+        princess.x + princess.width > obstacle.x &&
+        princess.y < obstacle.y + obstacle.height &&
+        princess.y + princess.height > obstacle.y
+      );
+    }
+
+    function handleCollision() {
+      lives--;
+      sounds.collision();
+      
+      if (lives <= 0) {
+        gameOver();
+      } else {
+        updateUI();
+        // Brief invincibility
+        setTimeout(() => {
+          if (gameRunning) animate();
+        }, 1000);
+      }
+    }
+
+    function gameOver() {
+      gameRunning = false;
+      currentState = GameState.GAME_OVER;
+      sounds.gameOver();
+      
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('princessRunHighScore', highScore);
+      }
+      
+      document.getElementById('finalScore').textContent = `Final Score: ${score}`;
+      document.getElementById('gameOverScreen').style.display = 'flex';
+    }
+
+    function restartGame() {
+      document.getElementById('gameOverScreen').style.display = 'none';
+      startGame();
+    }
+
+    function togglePause() {
+      if (currentState === GameState.PLAYING) {
+        gamePaused = !gamePaused;
+        document.getElementById('pauseBtn').textContent = gamePaused ? 'Resume' : 'Pause';
+        
+        if (!gamePaused) {
+          animate();
+        }
+      }
+    }
+
+    function endGame() {
+      gameRunning = false;
+      currentState = GameState.TITLE;
+      document.getElementById('titleScreen').style.display = 'flex';
+      document.getElementById('titleScreen').classList.remove('fade-out');
+    }
+
+    function updateUI() {
+      document.getElementById('scoreText').textContent = `Score: ${score}`;
+      document.getElementById('highScoreText').textContent = `High Score: ${highScore}`;
+      
+      // Update lives display
+      const livesDisplay = document.getElementById('livesDisplay');
+      livesDisplay.innerHTML = '';
+      for (let i = 0; i < lives; i++) {
+        livesDisplay.innerHTML += '<span class="heart">❤️</span>';
+      }
+    }
+
+    // Event listeners
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && currentState === GameState.PLAYING && !gamePaused) {
+        e.preventDefault();
+        princess.jump();
+      }
+    });
+
+    // Touch controls for mobile
+    let touchStartY = 0;
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      touchStartY = e.touches[0].clientY;
+    });
+
+    canvas.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      if (currentState === GameState.PLAYING && !gamePaused) {
+        princess.jump();
+      }
+    });
+
+    // Function to load real images (call this when you have real sprites)
+    function loadRealSprites() {
+      // Example usage:
+      // const princessImg = new Image();
+      // princessImg.onload = () => {
+      //   images.princess.idle = princessImg;
+      //   images.princess.running = princessImg;
+      //   images.princess.jumping = princessImg;
+      // };
+      // princessImg.src = 'path/to/princess-sprite.png';
+      
+      // const crownImg = new Image();
+      // crownImg.onload = () => { images.crown = crownImg; };
+      // crownImg.src = 'path/to/crown.png';
+      
+      // const castleImg = new Image();
+      // castleImg.onload = () => { images.castle = castleImg; };
+      // castleImg.src = 'path/to/castle.png';
+      
+      console.log('Ready to load real sprites! Replace placeholder sprites with real images.');
+    }
+
+    // Initialize
+    createPlaceholderSprites();
+    updateUI();
+    
+    // Uncomment this line when you have real sprites ready
+    // loadRealSprites();
+  </script>
+</body>
+</html>
+
